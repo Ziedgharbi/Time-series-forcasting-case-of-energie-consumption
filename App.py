@@ -85,7 +85,8 @@ X_test=test.drop(["PJME_MW",], axis=1)
 y_test=test["PJME_MW"]
 
 
-reg=xgb.XGBRegressor(n_estimators=1000, early_stopping_rounds=40)
+reg=xgb.XGBRegressor(n_estimators=10000, early_stopping_rounds=40,
+                     eta=0.01)
 reg.fit(X_train, y_train, 
         eval_set=[(X_train, y_train),(X_test,y_test)],
         verbose=True)
@@ -99,4 +100,26 @@ importance.sort_values('Score F').plot(kind='barh', title="feature importance")
 plot_importance(reg, importance_type='gain')
 
 
-xgb.plot_tree(reg)
+
+# prediction and visualization all
+consumption_pred=pd.DataFrame(reg.predict(x_test), index=test.index)
+
+ax=data['PJME_MW'].plot()  
+consumption_pred.plot(ax=ax)      
+plt.show()                     
+
+#ou bien
+plt.plot(data['PJME_MW'])
+plt.plot(consumption_pred, )
+plt.show()
+
+
+#visualization part of prevision
+ax=data[(data.index>"02-01-2018") & (data.index <= "02-08-2018")]['PJME_MW'].plot()
+consumption_pred[(consumption_pred.index>"02-01-2018") & (consumption_pred.index <= "02-08-2018")].plot(ax=ax, style='.')  
+plt.legend(["Real", 'Pred'])    
+plt.show() 
+
+
+
+
