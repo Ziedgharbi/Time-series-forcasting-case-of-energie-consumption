@@ -65,8 +65,8 @@ test= data.loc[data.index >="01-01-2015"]
 #visualization train and test 
 
 fig, ax= plt.subplots(figsize=(15,5))
-train.plot(ax=ax, label="Training set")
-test.plot(ax=ax, label="Testing set")
+train["PJME_MW"].plot(ax=ax, label="Training set")
+test["PJME_MW"].plot(ax=ax, label="Testing set")
 ax.axvline('01-01-2015', color="black", ls="--")
 ax.legend(["Training set", " Testing set"])
 plt.show()
@@ -102,7 +102,7 @@ plot_importance(reg, importance_type='gain')
 
 
 # prediction and visualization all
-consumption_pred=pd.DataFrame(reg.predict(x_test), index=test.index)
+consumption_pred=pd.DataFrame(reg.predict(X_test), index=test.index,  columns=["PJME_MW"])
 
 ax=data['PJME_MW'].plot()  
 consumption_pred.plot(ax=ax)      
@@ -121,5 +121,14 @@ plt.legend(["Real", 'Pred'])
 plt.show() 
 
 
+# error calculation
+error=np.sqrt(mean_squared_error(y_test, consumption_pred))
 
+
+# see dates where model are worst on prediction
+error =np.abs( pd.DataFrame(y_test)-consumption_pred)
+
+error["date"]=error.index.date
+
+error.groupby(['date']).mean().sort_values(by="PJME_MW",ascending=False).head(10)
 
