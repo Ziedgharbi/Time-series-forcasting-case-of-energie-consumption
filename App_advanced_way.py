@@ -17,6 +17,7 @@ data_path=directory_path+"data/"
 data=pd.read_csv(data_path+"PJME_hourly.csv")
 data=data.set_index("Datetime")
 data.index=pd.to_datetime(data.index)
+
 data.head
 data.tail
 data.columns
@@ -25,6 +26,28 @@ data.columns
 data.plot(style=".", figsize=(15,5), 
           title="Energy consumption hourly")
 sns.scatterplot(data.index, data.PJME_MW)
+
+
+
+#histogramme 
+data["PJME_MW"].plot(kind='hist', bins=600)
+
+# some musures on 2011 look weird : think of outliers
+
+
+data[data["PJME_MW"]<20_000].plot(style=".")
+
+data["PJME_MW"].describe()
+
+#drop observation below 19_000
+data=data.query("PJME_MW>19_000").copy()
+
+data[data["PJME_MW"]<20_000].plot(style=".")
+data["PJME_MW"].plot(style=".").plot(style='.')
+
+
+### time serie cross validation for split data 
+
 
 
 #feature creation
