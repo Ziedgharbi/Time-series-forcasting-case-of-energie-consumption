@@ -14,6 +14,7 @@ from sklearn.model_selection import TimeSeriesSplit
 
 directory_path="C:/Users/pc/Nextcloud/Python/GITHUB/Time-series-forcasting-case-of-energie-consumption/"
 data_path=directory_path+"data/"
+#model_path=directory_path+'model/'
 
 # load data 
 data=pd.read_csv(data_path+"PJME_hourly.csv")
@@ -133,22 +134,45 @@ last_time=data.index.max()  #last date
 future = pd.date_range(last_time,'2019-08-01',freq="H")
 future_data=pd.DataFrame(index=future)
 
-future_data["predicted_value"]=True
+future_data["isfuture"]=True
+
+
+data["isfuture"]=False
+
+
+data_and_future= pd.concat([data,future_data])
 
 
 
 
+#feature creation
+data_and_future["hour"]=data_and_future.index.hour
+data_and_future["dayofweek"]=data_and_future.index.dayofweek
+data_and_future["dayofyear"]=data_and_future.index.dayofyear
+data_and_future["month"]=data_and_future.index.month
+data_and_future["quarter"]=data_and_future.index.quarter
+data_and_future["year"]=data_and_future.index.year
+
+
+## create lag feature 
+data_and_future["lag1"]=data_and_future["PJME_MW"].shift(364) # lag 1 years
+data_and_future["lag2"]=data_and_future["PJME_MW"].shift(728)  # lag 2 years
+data_and_future["lag3"]=data_and_future["PJME_MW"].shift(1092) # lag 3 years
 
 
 
+future_and_features= data_and_future.query('isfuture').copy()
 
 
+# now prediction
+future_and_features.columns
+pred =pd.DataFrame( reg.predict(future_and_features.drop(["isfuture","PJME_MW"],axis=1)), index=future_and_features.index, columns=[future_and_features.columns[0]])
+
+pred.index=future_and_features.index
+
+pred.plot()
 
 
+# save model for future use
 
-
-
-
-
-
-
+reg.save_model("xgboost.json")
