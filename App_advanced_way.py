@@ -9,6 +9,8 @@ import seaborn as sns
 import xgboost as xgb
 from xgboost import plot_importance, plot_tree
 from  sklearn.metrics import mean_squared_error
+from sklearn.model_selection import TimeSeriesSplit
+
 
 directory_path="C:/Users/pc/Nextcloud/Python/GITHUB/Time-series-forcasting-case-of-energie-consumption/"
 data_path=directory_path+"data/"
@@ -39,15 +41,45 @@ data[data["PJME_MW"]<20_000].plot(style=".")
 
 data["PJME_MW"].describe()
 
-#drop observation below 19_000
+#drop observation below 19_000 : simple way, you could think of othrers
+# like statistics test
 data=data.query("PJME_MW>19_000").copy()
 
 data[data["PJME_MW"]<20_000].plot(style=".")
 data["PJME_MW"].plot(style=".").plot(style='.')
 
 
-### time serie cross validation for split data 
+### time serie cross validation for split data, it is more robust
 
+
+tscv=TimeSeriesSplit(n_splits=5,test_size=24*365*1, gap=24)
+
+data=data.sort_index() # sort by time, essential step
+
+# now split data
+
+fig, ax= plt.subplots(5,1,figsize=(15,5),sharex=True)
+
+for i, (train, test) in enumerate(tscv.split(data)):
+    
+    x_train=data.iloc[train]
+    x_test=data.iloc[test]
+    
+    
+    x_train["PJME_MW"].plot(ax=ax[i], 
+                            label="Training set", 
+                            title ="Split fold "+str(i+1))
+    
+    x_test["PJME_MW"].plot(ax=ax[i], 
+                           label="Testing set", 
+                           title ="Split fold"+str(i+1))
+
+   
+    ax[i].axvline(x_test.index.min(), color="black", ls='--')
+   
+plt.show()
+    
+  
 
 
 #feature creation
@@ -57,6 +89,21 @@ data["dayofyear"]=data.index.dayofyear
 data["month"]=data.index.month
 data["quarter"]=data.index.quarter
 data["year"]=data.index.year
+
+
+## create lag feature 
+data["lag1"]=data["PJME_MW"].shift(364) # lag 1 years
+data["lag2"]=data["PJME_MW"].shift(728)  # lag 2 years
+data["lag3"]=data["PJME_MW"].shift(1092) # lag 3 years
+
+
+
+## train model for each cross validation split 
+
+
+
+
+
 
 
 #visualization of the relation between target and features
