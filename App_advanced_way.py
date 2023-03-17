@@ -74,14 +74,11 @@ for i, (train, test) in enumerate(tscv.split(data)):
                            label="Testing set", 
                            title ="Split fold"+str(i+1))
 
-   
     ax[i].axvline(x_test.index.min(), color="black", ls='--')
    
 plt.show()
     
   
-
-
 #feature creation
 data["hour"]=data.index.hour
 data["dayofweek"]=data.index.dayofweek
@@ -97,8 +94,46 @@ data["lag2"]=data["PJME_MW"].shift(728)  # lag 2 years
 data["lag3"]=data["PJME_MW"].shift(1092) # lag 3 years
 
 
-
 ## train model for each cross validation split 
+score=[]
+
+for i, (train, test) in enumerate(tscv.split(data)):
+    
+    X_train=data.iloc[train].drop("PJME_MW", axis=1)
+    y_train=data.iloc[train]["PJME_MW"]
+    
+    X_test=data.iloc[test].drop("PJME_MW", axis=1)
+    y_test=data.iloc[test]["PJME_MW"]
+    
+    reg=xgb.XGBRegressor(base_score=0.5,booster="gbtree",
+                         n_estimators=1000, 
+                         early_stopping_rounds=40,
+                         objective='reg:linear',
+                         max_depth=3,
+                         learning_rate=0.01)
+    
+    reg.fit(X_train, y_train, 
+            eval_set=[(X_train, y_train),(X_test,y_test)],
+            verbose=True)
+    
+    y_pred=pd.DataFrame(reg.predict(X_test), index=y_test.index,  columns=["PJME_MW"])
+
+    error=np.sqrt(mean_squared_error(y_test, y_pred))
+    score.append(error)
+
+print(" RSME for F fold " , np.mean(score))
+print("Score for each fold ", score )
+
+
+
+# Future prediction 
+
+last_time=data.index.max()  #last date
+
+future = pd.date_range(last_time,'2019-08-01',freq="H")
+future_data=pd.DataFrame(index=future)
+
+future_data["predicted_value"]=True
 
 
 
@@ -106,99 +141,14 @@ data["lag3"]=data["PJME_MW"].shift(1092) # lag 3 years
 
 
 
-#visualization of the relation between target and features
-""" by hour"""
-fig,ax=plt.subplots(figsize=(18,8))
-sns.boxplot(data=data, x="hour", y='PJME_MW', palette="Blues")
-ax.set_title("Consumption by hour")
-plt.show()
-
-""" by month"""
-fig,ax=plt.subplots(figsize=(18,8))
-sns.boxplot(data=data, x="month", y='PJME_MW', palette="Blues")
-ax.set_title("Consumption by month")
-plt.show()
-
-
-""" by year"""
-fig,ax=plt.subplots(figsize=(18,8))
-sns.boxplot(data=data, x="year", y='PJME_MW', palette="Blues")
-ax.set_title("Consumption by year")
-plt.show()
-
-
-## split data 
-
-train= data.loc[data.index <"01-01-2015"]
-test= data.loc[data.index >="01-01-2015"]
-
-#visualization train and test 
-
-fig, ax= plt.subplots(figsize=(15,5))
-train["PJME_MW"].plot(ax=ax, label="Training set")
-test["PJME_MW"].plot(ax=ax, label="Testing set")
-ax.axvline('01-01-2015', color="black", ls="--")
-ax.legend(["Training set", " Testing set"])
-plt.show()
-
-
-# plot a sample to see seasonality 
-data.columns
-data.loc[(data.index >'01-02-2010')  & (data.index <='01-10-2010')]["PJME_MW"].plot()
- 
-
-### model definition 
-X_train=train.drop(["PJME_MW",], axis=1)
-y_train=train["PJME_MW"]
-
-X_test=test.drop(["PJME_MW",], axis=1)
-y_test=test["PJME_MW"]
-
-
-reg=xgb.XGBRegressor(n_estimators=10000, early_stopping_rounds=40,
-                     eta=0.01)
-reg.fit(X_train, y_train, 
-        eval_set=[(X_train, y_train),(X_test,y_test)],
-        verbose=True)
-
-
-# plot feature importance
-importance=pd.DataFrame(data=reg.feature_importances_,index=reg.feature_names_in_,columns=["Score F"])
-
-importance.sort_values('Score F').plot(kind='barh', title="feature importance")
-
-plot_importance(reg, importance_type='gain')
 
 
 
-# prediction and visualization all
-consumption_pred=pd.DataFrame(reg.predict(X_test), index=test.index,  columns=["PJME_MW"])
-
-ax=data['PJME_MW'].plot()  
-consumption_pred.plot(ax=ax)      
-plt.show()                     
-
-#ou bien
-plt.plot(data['PJME_MW'])
-plt.plot(consumption_pred, )
-plt.show()
 
 
-#visualization part of prevision
-ax=data[(data.index>"02-01-2018") & (data.index <= "02-08-2018")]['PJME_MW'].plot()
-consumption_pred[(consumption_pred.index>"02-01-2018") & (consumption_pred.index <= "02-08-2018")].plot(ax=ax, style='.')  
-plt.legend(["Real", 'Pred'])    
-plt.show() 
 
 
-# error calculation
-error=np.sqrt(mean_squared_error(y_test, consumption_pred))
 
 
-# see dates where model are worst on prediction
-error =np.abs( pd.DataFrame(y_test)-consumption_pred)
 
-error["date"]=error.index.date
-
-error.groupby(['date']).mean().sort_values(by="PJME_MW",ascending=False).head(10)
 
