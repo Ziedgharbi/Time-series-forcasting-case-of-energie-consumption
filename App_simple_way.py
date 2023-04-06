@@ -35,7 +35,6 @@ data["month"]=data.index.month
 data["quarter"]=data.index.quarter
 data["year"]=data.index.year
 
-
 #visualization of the relation between target and features
 """ by hour"""
 fig,ax=plt.subplots(figsize=(18,8))
