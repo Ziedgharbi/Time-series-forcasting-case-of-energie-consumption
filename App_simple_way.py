@@ -26,7 +26,6 @@ data.plot(style=".", figsize=(15,5),
           title="Energy consumption hourly")
 sns.scatterplot(data.index, data.PJME_MW)
 
-
 #feature creation
 data["hour"]=data.index.hour
 data["dayofweek"]=data.index.dayofweek
