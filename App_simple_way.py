@@ -74,7 +74,6 @@ plt.show()
 data.columns
 data.loc[(data.index >'01-02-2010')  & (data.index <='01-10-2010')]["PJME_MW"].plot()
  
-
 ### model definition 
 X_train=train.drop(["PJME_MW",], axis=1)
 y_train=train["PJME_MW"]
