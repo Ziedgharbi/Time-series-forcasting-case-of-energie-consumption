@@ -54,7 +54,6 @@ sns.boxplot(data=data, x="year", y='PJME_MW', palette="Blues")
 ax.set_title("Consumption by year")
 plt.show()
 
-
 ## split data 
 
 train= data.loc[data.index <"01-01-2015"]
@@ -120,7 +119,6 @@ plt.show()
 
 # error calculation
 error=np.sqrt(mean_squared_error(y_test, consumption_pred))
-
 
 # see dates where model are worst on prediction
 error =np.abs( pd.DataFrame(y_test)-consumption_pred)
