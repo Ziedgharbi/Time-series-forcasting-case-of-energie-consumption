@@ -11,7 +11,6 @@ from xgboost import plot_importance, plot_tree
 from  sklearn.metrics import mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 
-
 directory_path="C:/Users/pc/Nextcloud/Python/GITHUB/Time-series-forcasting-case-of-energie-consumption/"
 data_path=directory_path+"data/"
 #model_path=directory_path+'model/'
