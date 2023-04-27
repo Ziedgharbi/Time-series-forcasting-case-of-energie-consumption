@@ -30,12 +30,10 @@ data.plot(style=".", figsize=(15,5),
 sns.scatterplot(data.index, data.PJME_MW)
 
 
-
 #histogramme 
 data["PJME_MW"].plot(kind='hist', bins=600)
 
 # some musures on 2011 look weird : think of outliers
-
 
 data[data["PJME_MW"]<20_000].plot(style=".")
 
