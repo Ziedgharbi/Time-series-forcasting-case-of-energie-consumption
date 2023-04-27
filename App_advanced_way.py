@@ -123,7 +123,6 @@ print(" RSME for F fold " , np.mean(score))
 print("Score for each fold ", score )
 
 
-
 # Future prediction 
 
 last_time=data.index.max()  #last date
@@ -141,7 +140,6 @@ data_and_future= pd.concat([data,future_data])
 
 
 
-
 #feature creation
 data_and_future["hour"]=data_and_future.index.hour
 data_and_future["dayofweek"]=data_and_future.index.dayofweek
@@ -155,7 +153,6 @@ data_and_future["year"]=data_and_future.index.year
 data_and_future["lag1"]=data_and_future["PJME_MW"].shift(364) # lag 1 years
 data_and_future["lag2"]=data_and_future["PJME_MW"].shift(728)  # lag 2 years
 data_and_future["lag3"]=data_and_future["PJME_MW"].shift(1092) # lag 3 years
-
 
 
 future_and_features= data_and_future.query('isfuture').copy()
